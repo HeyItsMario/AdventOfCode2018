@@ -14,65 +14,51 @@
         tall (Integer. (second dimensions))
         coords (clojure.string/split (nth claim 2) #",")
         coords [(Integer. (first coords)) (Integer. (second coords))]]
-    {:tl coords
-     :tr [(+ wide (first coords)) (second coords)]
-     :bl [(first coords) (+ tall (second coords))]
-     :br [(+ wide (first coords)) (+ tall (second coords))]}))
+    {:id (first claim)
+     :x1 (first coords)
+     :y1 (second coords)
+     :x2 (+ wide (first coords))
+     :y2 (+ tall (second coords))}))
 
-(defn point-in-sheets ""
-  [sheet point corner]
-  (let [x (first point)
-        y (second point)
-        left-edge (first (sheet :tl))
-        right-edge (first (sheet :tr))
-        top-edge (second (sheet :tl))
-        bottom-edge (second (sheet :bl))]
-    (if (and (< x right-edge)
-             (> x left-edge)
-             (> y top-edge)
-             (< y bottom-edge))
-      {:corner corner
-       :coords [x y]}
-      false)))
 
-(defn sheet-overlap
-  "Returns a list of corners in sheet-b that are inside sheet-a"
-  [sheet-a sheet-b]
-  (remove false? (map (fn [[corner point]]
-                      (point-in-sheets sheet-a point corner)) sheet-b)))
-
-#_(defmulti one-corner-overlap
-  (fn [sheet corners]
-    (into [] (map (fn [points] (:corner points)) corners))))
-
-(defmulti two-corner-overlap)
-(defmulti three-corner-overlap)
-(def four-corner-overlap)
-
-(def opposite-corners
-  {:tr :bl
-   :tl :br
-   :br :tl
-   :bl :tr})
-
-(defn one-corner-overlap
-  "Returns the area that is made if only one corner is inside"
-  [sheet corners]
-  (let [opposite-corner (opposite-corners ((first corners) :corner))
-        opp-coords (sheet opposite-corner)
-        curr-coords ((first corners) :coords)
-        y (- (second curr-coords) (second opp-coords))
-        x (- (first curr-coords) (first opp-coords))]
-    (if (neg? (* x y))
-      (* -1 (* x y))
-      (* x y))))
-
-(defn two-corner-overlap
+(defn calculate-intersect-area
   ""
-  [sheet corners]
-  (let [inside-corners (into [] corners)
-        first-corner-c ((first corners) :coords)
-        second-corner-c ((second corners) :coords)
-        ]))
+  [sheet-a sheet-b]
+  (let [union-area (* (max 0 (- (min (sheet-a :x2) (sheet-b :x2))
+                                (max (sheet-a :x1) (sheet-b :x1))))
+                      (max 0 (- (min (sheet-a :y2) (sheet-b :y2))
+                                (max (sheet-a :y1) (sheet-b :y1)))))]
+    union-area))
+
+
+
+
+(defn test-run ""
+  [sheets]
+  (loop [main-sheet (first sheets)
+         rest-sheet (rest sheets)
+         counted #{(main-sheet :id)}
+         acc 0]
+    (let [result (map (fn [sheet]
+                        {:sum (calculate-intersect-area main-sheet sheet)
+                         :id (sheet :id)}) rest-sheet)
+          flt (filter (fn [sheet]
+                        (not (= 0 (sheet :sum)))) result)
+          filter-counted (map (fn [sheet]
+                                (if (not (contains? counted (sheet :id)))
+                                  (sheet :id))) flt)
+          real-sum (+ acc (reduce (fn [ac sheet]
+                                    (if (not (contains? counted (sheet :id)))
+                                      (+ ac (sheet :sum))
+                                      (+ ac 0))) 0 flt))
+          counted (apply conj counted filter-counted)]
+      (if (= 1 (count (seq rest-sheet)))
+        acc
+        (recur (first rest-sheet)
+               (rest rest-sheet)
+               counted
+               real-sum)))))
+
+
 
 

@@ -85,7 +85,7 @@
     (let [sbl (subtract-lists first-l rest-l)
           freqs (map (fn [lst] (frequencies lst)) sbl)
           mtch (keep-indexed (fn [indx f-vec]
-                               (if (= ((into (sorted-map) f-vec) 0) 3)
+                               (if (= ((into (sorted-map) f-vec) 0) 25)
                                  indx)) (into [] freqs))]
       (if (seq mtch)
         {:a index-f
