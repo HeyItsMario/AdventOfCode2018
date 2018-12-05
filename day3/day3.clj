@@ -20,7 +20,9 @@
      :x2 (+ wide (first coords))
      :y2 (+ tall (second coords))}))
 
-
+(defn sheet-set ""
+  []
+  (let [my-set #{}]))
 (defn calculate-intersect-area
   ""
   [sheet-a sheet-b]
@@ -47,7 +49,8 @@
           filter-counted (map (fn [sheet]
                                 (if (not (contains? counted (sheet :id)))
                                   (sheet :id))) flt)
-          real-sum (+ acc (reduce (fn [ac sheet]
+          r
+          eal-sum (+ acc (reduce (fn [ac sheet]
                                     (if (not (contains? counted (sheet :id)))
                                       (+ ac (sheet :sum))
                                       (+ ac 0))) 0 flt))
